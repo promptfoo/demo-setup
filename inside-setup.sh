@@ -71,6 +71,8 @@ mkdir -p "$PROMPTFOO_DIR"
 if [[ -z "$DB_PATH" ]]; then
   if [[ -f "./promptfoo.db" ]]; then
     DB_PATH="./promptfoo.db"
+  elif [[ -f "/tmp/promptfoo/promptfoo.db" ]]; then
+    DB_PATH="/tmp/promptfoo/promptfoo.db"
   elif [[ -f "/root/incoming/promptfoo.db" ]]; then
     DB_PATH="/root/incoming/promptfoo.db"
   elif [[ -f "/root/incoming/db.sqlite" ]]; then

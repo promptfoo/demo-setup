@@ -5,20 +5,17 @@ set -euo pipefail
 # Does NOT execute the setup inside the container.
 
 NAME=${NAME:-kali-promptfoo-int}
-DB_SOURCE=${1:-}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DB_SOURCE="$SCRIPT_DIR/promptfoo.db"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "Docker is required" >&2
   exit 1
 fi
 
-if [[ -z "$DB_SOURCE" ]]; then
-  DB_SOURCE="$HOME/.promptfoo/promptfoo.db"
-  echo "No DB path provided. Defaulting to: $DB_SOURCE"
-fi
-
 if [[ ! -e "$DB_SOURCE" ]]; then
-  echo "DB file not found: $DB_SOURCE" >&2
+  echo "DB file not found next to this script: $DB_SOURCE" >&2
+  echo "Place your promptfoo.db in: $SCRIPT_DIR" >&2
   exit 1
 fi
 
@@ -27,14 +24,13 @@ if ! docker ps --format '{{.Names}}' | grep -Fx "$NAME" >/dev/null 2>&1; then
   exit 1
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-docker exec "$NAME" bash -lc 'mkdir -p /root/incoming' | cat
-docker cp "$DB_SOURCE" "$NAME":/root/incoming/promptfoo.db
-docker cp "$SCRIPT_DIR/inside-setup.sh" "$NAME":/root/incoming/inside-setup.sh
+TMP_DIR="/tmp/promptfoo"
+docker exec "$NAME" bash -lc "mkdir -p '$TMP_DIR'" | cat
+docker cp "$DB_SOURCE" "$NAME":"$TMP_DIR"/promptfoo.db
+docker cp "$SCRIPT_DIR/inside-setup.sh" "$NAME":"$TMP_DIR"/inside-setup.sh
 
 echo "Copied into container $NAME:"
-echo "  /root/incoming/promptfoo.db"
-echo "  /root/incoming/inside-setup.sh"
+echo "  $TMP_DIR/promptfoo.db"
+echo "  $TMP_DIR/inside-setup.sh"
 
 
