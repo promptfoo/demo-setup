@@ -1,0 +1,11 @@
+# General
+.DS_Store
+
+# Ignore everything by default
+/*
+!/.gitignore
+!README.md
+!inside-setup.sh
+!push-db-and-setup.sh
+!start-interactive.sh
+!promptfoo.db
