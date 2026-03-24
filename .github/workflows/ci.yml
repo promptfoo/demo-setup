@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  demo-setup-validation:
+    name: Demo Setup Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate shell scripts
+        run: |
+          bash -n inside-setup.sh
+          bash -n push-db-and-setup.sh
+          bash -n push-only.sh
+          bash -n start-interactive.sh
+
+      - name: Validate SQLite database integrity
+        run: |
+          python3 - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          path = Path("promptfoo.db")
+          if not path.is_file():
+              raise SystemExit("Missing promptfoo.db")
+
+          with sqlite3.connect(path) as connection:
+              result = connection.execute("PRAGMA quick_check").fetchone()
+
+          if result is None or result[0] != "ok":
+              raise SystemExit(f"SQLite quick_check failed: {result}")
+
+          print("SQLite quick_check passed")
+          PY
